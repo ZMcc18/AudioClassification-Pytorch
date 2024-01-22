@@ -4,9 +4,9 @@ import os
 # 生成数据列表
 def get_data_list(audio_path, list_path):
     sound_sum = 0
-    audios = os.listdir(audio_path)
+    audios = os.listdir(audio_path)    # audoi_path 下的所有文件
 
-    f_train = open(os.path.join(list_path, 'train_list.txt'), 'w', encoding='utf-8')
+    f_train = open(os.path.join(list_path, 'train_list.txt'), 'w', encoding='utf-8')    
     f_test = open(os.path.join(list_path, 'test_list.txt'), 'w', encoding='utf-8')
     f_label = open(os.path.join(list_path, 'label_list.txt'), 'w', encoding='utf-8')
 
@@ -70,10 +70,11 @@ def create_UrbanSound8K_list(audio_path, metadata_path, list_path):
 
     labels = {}
     for i, line in enumerate(lines):
-        if i == 0:continue
-        data = line.replace('\n', '').split(',')
-        class_id = int(data[6])
-        if class_id not in labels.keys():
+        if i == 0:    # 逐行读取，并忽略第一行
+            continue
+        data = line.replace('\n', '').split(',')  # 使用replace('\n', '')将行末尾的换行符去掉，然后使用split(',')根据逗号,将行分割成一个字符串列表。
+        class_id = int(data[6])     # class类型id号时data数据第七列
+        if class_id not in labels.keys():  
             labels[class_id] = data[-1]
         sound_path = os.path.join(audio_path, f'fold{data[5]}', data[0]).replace('\\', '/')
         if sound_sum % 10 == 0:
