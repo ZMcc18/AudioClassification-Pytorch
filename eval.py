@@ -6,7 +6,11 @@ from macls.trainer import MAClsTrainer
 from macls.utils.utils import add_arguments, print_arguments
 
 parser = argparse.ArgumentParser(description=__doc__)
+
+# 创建了一个新函数add_arg，它的工作方式与add_arguments功能相同，只是其argparser参数已经被预先设定为parser。
+# 所以现在你可以像这样调用add_arg函数，而不需要传入argparser参数：
 add_arg = functools.partial(add_arguments, argparser=parser)
+
 add_arg('configs',          str,   'configs/cam++.yml',         "配置文件")
 add_arg("use_gpu",          bool,  True,                        "是否使用GPU评估模型")
 add_arg('save_matrix_path', str,   'output/images/',            "保存混合矩阵的路径")
