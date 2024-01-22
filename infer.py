@@ -1,3 +1,4 @@
+# 类似推理中，一个一个batch输入其中，流式处理
 import argparse
 import functools
 
