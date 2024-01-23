@@ -35,12 +35,12 @@ def statistics_pooling(x, dim=-1, keepdim=False, unbiased=True, eps=1e-2):
         stats = stats.unsqueeze(dim=dim)      # 则使用unsqueeze函数在指定维度dim上添加一个尺寸为1的新维度
     return stats
 
-
+# 统计池化层forward
 class StatsPool(nn.Module):
     def forward(self, x):
         return statistics_pooling(x)
 
-
+# TDNNLayer层
 class TDNNLayer(nn.Module):
     def __init__(self,
                  in_channels,
@@ -56,6 +56,7 @@ class TDNNLayer(nn.Module):
             assert kernel_size % 2 == 1, 'Expect equal paddings, but got even kernel size ({})'.format(
                 kernel_size)
             padding = (kernel_size - 1) // 2 * dilation
+        # 一维卷积
         self.linear = nn.Conv1d(in_channels,
                                 out_channels,
                                 kernel_size,
@@ -70,7 +71,7 @@ class TDNNLayer(nn.Module):
         x = self.nonlinear(x)
         return x
 
-
+# CAMLayer层
 class CAMLayer(nn.Module):
     def __init__(self,
                  bn_channels,
@@ -82,6 +83,7 @@ class CAMLayer(nn.Module):
                  bias,
                  reduction=2):
         super(CAMLayer, self).__init__()
+        
         self.linear_local = nn.Conv1d(bn_channels,
                                       out_channels,
                                       kernel_size,
@@ -100,7 +102,7 @@ class CAMLayer(nn.Module):
         context = self.relu(self.linear1(context))
         m = self.sigmoid(self.linear2(context))
         return y * m
-
+# 池化层
     def seg_pooling(self, x, seg_len=100, stype='avg'):
         if stype == 'avg':
             seg = F.avg_pool1d(x, kernel_size=seg_len, stride=seg_len, ceil_mode=True)
@@ -128,7 +130,7 @@ class CAMDenseTDNNLayer(nn.Module):
         super(CAMDenseTDNNLayer, self).__init__()
         assert kernel_size % 2 == 1, 'Expect equal paddings, but got even kernel size ({})'.format(
             kernel_size)
-        padding = (kernel_size - 1) // 2 * dilation
+        padding = (kernel_size - 1) // 2 * dilation # 保持输入与输出相同的空间尺寸
         self.memory_efficient = memory_efficient
         self.nonlinear1 = get_nonlinear(config_str, in_channels)
         self.linear1 = nn.Conv1d(in_channels, bn_channels, 1, bias=False)
