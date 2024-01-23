@@ -5,7 +5,7 @@ import torch.nn.functional as F
 import torch.utils.checkpoint as cp
 from torch import nn
 
-
+# 非线性层：包括relu、prelu两个激活函数，与批归一化
 def get_nonlinear(config_str, channels):
     nonlinear = nn.Sequential()
     for name in config_str.split('-'):
@@ -13,22 +13,26 @@ def get_nonlinear(config_str, channels):
             nonlinear.add_module('relu', nn.ReLU(inplace=True))
         elif name == 'prelu':
             nonlinear.add_module('prelu', nn.PReLU(channels))
+        # 目的是输出保持相同分布、加速训练（加速收敛）
         elif name == 'batchnorm':
             nonlinear.add_module('batchnorm', nn.BatchNorm1d(channels))
         elif name == 'batchnorm_':
+        # 当affine参数设为True时（默认值也是True），BatchNorm层会为每个通道学习一个缩放因子和一个偏移因子。
+        # 主要功能是为了恢复因为BatchNorm使得网络失去了表达能力的部分。因此大多数情况下，我们会让affine=True。
             nonlinear.add_module('batchnorm',
                                  nn.BatchNorm1d(channels, affine=False))
         else:
             raise ValueError('Unexpected module ({}).'.format(name))
     return nonlinear
 
-
+# 统计池化层：计算输入张量x沿指定维度的均值和标准差，并将它们连接起来。
+# 统计池化操作在语音处理或者序列处理等场景中较为常见，它可以从序列中提取全局的统计特征。这可以帮助模型对输入的变化有更好的理解和适应性。
 def statistics_pooling(x, dim=-1, keepdim=False, unbiased=True, eps=1e-2):
-    mean = x.mean(dim=dim)
-    std = x.std(dim=dim, unbiased=unbiased)
-    stats = torch.cat([mean, std], dim=-1)
-    if keepdim:
-        stats = stats.unsqueeze(dim=dim)
+    mean = x.mean(dim=dim)                    # 沿dim取均值
+    std = x.std(dim=dim, unbiased=unbiased)   # 标准差计算
+    stats = torch.cat([mean, std], dim=-1)    # 在最后一个维度上拼接起来。这意味着它们会形成一个新的张量，其最后一个维度包含了输入张量的均值和标准差。
+    if keepdim:                               # 如果keepdim为true，保持输入张量的维数不变。这通过在指定的维度上添加尺寸为1的新维度来实现。
+        stats = stats.unsqueeze(dim=dim)      # 则使用unsqueeze函数在指定维度dim上添加一个尺寸为1的新维度
     return stats
 
 
