@@ -1,4 +1,5 @@
 # 实时化流式处理操作
+# 应该算是同时包括了record_audio.py和infer.py的功能
 import argparse
 import functools
 import threading
