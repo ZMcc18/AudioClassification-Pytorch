@@ -34,17 +34,18 @@ from macls.models.tdnn import TDNN
 from macls.utils.logger import setup_logger
 from macls.utils.scheduler import WarmupCosineSchedulerLR
 from macls.utils.utils import dict_to_object, plot_confusion_matrix, print_arguments
+#在你的例子中，调用setup_logger(__name__)将创建一个日志记录器，并将其名称设置为当前执行的模块名。这是一种常见的设置方式，因为这样可以容易地区分来自不同模块的日志信息。
+logger = setup_logger(__name__)   
 
-logger = setup_logger(__name__)
 
-
-class MAClsTrainer(object):
+class MAClsTrainer(object):                                        
     def __init__(self, configs, use_gpu=True):
         """ macls集成工具类
 
         :param configs: 配置字典
         :param use_gpu: 是否使用GPU训练模型
         """
+        # GPU是否使用
         if use_gpu:
             assert (torch.cuda.is_available()), 'GPU不可用'
             self.device = torch.device("cuda")
@@ -53,11 +54,13 @@ class MAClsTrainer(object):
             self.device = torch.device("cpu")
         self.use_gpu = use_gpu
         # 读取配置文件
-        if isinstance(configs, str):
-            with open(configs, 'r', encoding='utf-8') as f:
-                configs = yaml.load(f.read(), Loader=yaml.FullLoader)
-            print_arguments(configs=configs)
-        self.configs = dict_to_object(configs)
+        if isinstance(configs, str):   # 类型判断，congfigs是str类型的，也就是一个文件路径·
+            with open(configs, 'r', encoding='utf-8') as f:   # 只度打开configs并命名为f，它可以确保文件在读取后会被正确地关闭，即使在读取文件时发生了某些异常。
+                configs = yaml.load(f.read(), Loader=yaml.FullLoader)  # f.read()这一句是读取打开的文件的全部内容，
+                # yaml.load(f.read(), Loader=yaml.FullLoader)是用来解析读取的文件内容。yaml.load()方法会将YAML格式的字符串解析成Python的数据类型。
+                # Loader=yaml.FullLoader是解析器的参数，表示使用“全装载”的方式来解析YAML文件，这种方式可以处理YAML的全部特性。
+            print_arguments(configs=configs) # 打印配置参数信息
+        self.configs = dict_to_object(configs) # 
         assert self.configs.use_model in SUPPORT_MODEL, f'没有该模型：{self.configs.use_model}'
         self.model = None
         self.test_loader = None
